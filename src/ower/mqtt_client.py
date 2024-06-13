@@ -4,9 +4,8 @@ import queue
 import threading
 
 import paho.mqtt.client as mqtt
+from enums import ClientEnum
 from paho.mqtt.client import CallbackAPIVersion
-
-from .enums import ClientEnum
 
 logging.basicConfig(level=logging.INFO)
 

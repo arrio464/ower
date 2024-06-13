@@ -2,16 +2,23 @@ import logging
 import queue
 import threading
 
-from ower import config
-from ower.audio import Player, Recorder
-from ower.cli import Cli
-from ower.enums import ClientEnum
-from ower.fuo import FuoClient
-from ower.gui import Gui
-from ower.http_client import HttpClient
-from ower.mqtt_client import MqttClient
+import config as config
+from audio import Player, Recorder
+from cli import Cli
+from enums import ClientEnum
+from fuo import FuoClient
+from gui import Gui
+from http_client import HttpClient
+from mqtt_client import MqttClient
 
 logging.basicConfig(level=logging.INFO)
+
+
+def start_gui(queues, events):
+    gui = Gui()
+    gui.set_text1("        我能帮你什么？        ")
+    gui.set_text2("")
+    gui.run(queues, events)
 
 
 def main():
@@ -31,13 +38,11 @@ def main():
         username=config.MQTT_USERNAME,
         password=config.MQTT_PASSWORD,
     )
-    sts = Cli()
-    gui = Gui(sts)
 
     fuo_thread = threading.Thread(target=fuo.run, args=(queues, events))
     http_thread = threading.Thread(target=http.run, args=(queues, events))
     mqtt_thread = threading.Thread(target=mqtt.run, args=(queues, events))
-    gui_thread = threading.Thread(target=gui.run, args=(queues, events))
+    gui_thread = threading.Thread(target=start_gui, args=(queues, events))
 
     fuo_thread.start()
     http_thread.start()

@@ -3,7 +3,7 @@ import threading
 import wave
 from tkinter import Button, Tk
 
-import config
+# import config
 import pyaudio
 import requests
 

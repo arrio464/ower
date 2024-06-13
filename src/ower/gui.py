@@ -91,17 +91,33 @@
 #             self.wave_points[x] = y
 #             self.wave_canvas.create_line(x, y, x, y + 1, fill="black", tag="wave")
 #         self.after(50, self.update_wave)
+import json
+import logging
+import queue
 import re
+import subprocess
 import sys
+import threading
 
 import cv2
 import pygame
+import RPi.GPIO as GPIO
+from cli import Cli
+from enums import ClientEnum
+
+logging.basicConfig(level=logging.INFO)
 
 
-class Gui:
+class Gui(Cli):
     def __init__(self):
+        super().__init__()
+        GPIO.setmode(GPIO.BCM)  # 设置GPIO 12为输入，并启用内部上拉电阻
+        GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(
+            12, GPIO.BOTH, callback=self.button_callback, bouncetime=50
+        )
         pygame.init()
-        self.size = (480, 320)
+        self.size = (900, 610)
         self.screen = pygame.display.set_mode(
             self.size, pygame.RESIZABLE | pygame.NOFRAME
         )
@@ -114,10 +130,46 @@ class Gui:
         pygame.font.init()
         # self.font = pygame.font.Font(None, 36)
         # self.font = pygame.font.Font("C:\Windows\Fonts\Arial.ttf", 24)
-        self.font = pygame.font.SysFont("SimHei", 20)
-        self.text1 = ""
-        self.text2 = ""
+        self.font = pygame.font.SysFont("wenquanyimicrohei", 36)
         self.max_width = self.size[0] - 20  # 最大宽度为窗口宽度减去左右边距
+
+    def pause_music(self):
+        fuo_msg = {
+            "type": None,
+            "name": None,
+            "state": "0",
+        }
+        self.queues[ClientEnum.FUO].put(fuo_msg)
+        logging.info("Pausing music...")
+
+    def resume_music(self):
+        fuo_msg = {
+            "type": None,
+            "name": None,
+            "state": "1",
+        }
+        self.queues[ClientEnum.FUO].put(fuo_msg)
+        logging.info("Resuming music...")
+
+    def button_callback(self, channel):
+        if GPIO.input(12) == GPIO.LOW:
+            logging.info("Key pressed")
+            self.pause_music()
+
+            super().start_recording()
+            self.set_text1("        我能帮你什么？        ")
+            self.set_text2("")
+            self.set_topmost()
+        else:
+            logging.info("Key raised")
+            super().stop_recording()
+            user = super()._stt()
+            self.set_text1(user)
+            llm = super().talk(user)
+            self.set_text2(llm)
+            super().say(llm)
+            self.hide()
+            self.resume_music()
 
     def split_text(self, text, font, max_width):
         words = re.split("([ ,.，。：；*])", text)
@@ -157,6 +209,10 @@ class Gui:
             import ctypes
 
             ctypes.windll.user32.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 0x0001 | 0x0002)
+        elif sys.platform == "linux":
+            window_id = pygame.display.get_wm_info()["window"]
+            subprocess.run(["xdotool", "windowraise", str(window_id)])
+            subprocess.run(["xdotool", "windowactivate", str(window_id)])
 
     def hide(self):
         pygame.display.iconify()
@@ -164,7 +220,8 @@ class Gui:
     def quit(self):
         self.running = False
 
-    def run(self):
+    def run(self, queue, event):
+        self.queues = queue
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -197,7 +254,7 @@ class Gui:
             self.screen.blit(
                 frame_surface_ball,
                 (
-                    240 - frame_surface_ball.get_width() / 2,
+                    450 - frame_surface_ball.get_width() / 2,
                     0
                     - frame_surface_ball.get_height() / 2
                     + 80,  # 80 is a little offset
@@ -206,8 +263,8 @@ class Gui:
             self.screen.blit(
                 frame_surface_wave,
                 (
-                    240 - frame_surface_wave.get_width() / 2,
-                    320 - frame_surface_wave.get_height(),
+                    450 - frame_surface_wave.get_width() / 2,
+                    610 - frame_surface_wave.get_height(),
                 ),
             )
 
@@ -217,7 +274,7 @@ class Gui:
                 self.screen.blit(line_surface, (5, y_offset))
                 y_offset += self.font.get_linesize()
 
-            y_offset = 200
+            y_offset = 350
             for line in self.text2_lines:
                 line_surface = self.font.render(line, True, (255, 255, 255))
                 self.screen.blit(line_surface, (5, y_offset))
@@ -232,59 +289,15 @@ class Gui:
 
 
 if __name__ == "__main__":
+    queues = [queue.Queue() for _ in range(ClientEnum.__len__())]
+    events = [threading.Event() for _ in range(ClientEnum.__len__())]
     gui = Gui()
-    gui.set_topmost()
+
     gui.set_text1(
         "老子曰：「至治之極，鄰國相望，雞狗之聲相聞，民各甘其食，美其服，安其俗，樂其業，至老死，不相往來。」"
     )
     gui.set_text2(
         "太史公曰：夫神農以前，吾不知已。至若詩書所述虞夏以來，耳目欲極聲色之好，口欲窮芻豢之味，身安逸樂，而心誇矜輓能之榮使。"
     )
-    gui.run()
-
-# def main():
-#     pygame.init()
-#     size = (480, 320)
-#     screen = pygame.display.set_mode(size, pygame.RESIZABLE)
-#     pygame.display.set_caption("Pygame Video with Transparent Background")
-
-#     cap_ball = cv2.VideoCapture("assets/idle_anim.mp4")
-#     cap_wave = cv2.VideoCapture("assets/listening_anim.mp4")
-#     clock = pygame.time.Clock()
-#     running = True
-#     while running:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 running = False
-#         ret, frame_ball = cap_ball.read()
-#         ret, frame_wave = cap_wave.read()
-#         if not ret:
-#             break
-#         # 将视频帧从 BGR 转换为 RGB
-#         frame_ball = cv2.cvtColor(frame_ball, cv2.COLOR_BGR2RGB)
-#         frame_wave = cv2.cvtColor(frame_wave, cv2.COLOR_BGR2RGB)
-#         # 将帧数据转换为 Pygame 表面
-#         frame_surface = pygame.surfarray.make_surface(frame_ball)
-#         frame_surface = pygame.transform.rotate(
-#             frame_surface, -90
-#         )  # 旋转 90 度适应窗口
-#         # 创建半透明的背景
-#         background = pygame.Surface(size)
-#         background.set_alpha(128)  # 128 代表 50% 透明度
-#         background.fill((0, 0, 0))  # 黑色背景
-#         # 绘制背景和视频帧
-#         screen.blit(background, (144, 0))
-#         screen.blit(frame_surface, (0, 0))
-#         pygame.display.flip()
-#         clock.tick(30)  # 设置帧率
-#     cap_ball.release()
-#     pygame.quit()
-
-
-# if __name__ == "__main__":
-#     main()
-
-
-# if __name__ == "__main__":
-# app = VoiceAssistantApp()
-# app.mainloop()
+    gui.run(queues, events)
+    gui.set_topmost()

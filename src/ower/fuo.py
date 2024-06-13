@@ -7,9 +7,8 @@ import struct
 import time
 
 import requests
-
-from .enums import ClientEnum
-from .music_list import calmed_songs, happiy_songs, sadness_songs, tired_songs
+from enums import ClientEnum
+from music_list import calmed_songs, happiy_songs, sadness_songs, tired_songs
 
 logging.basicConfig(level=logging.INFO)
 
@@ -155,13 +154,16 @@ class FuoClient(FuoProtocol):
         # uri = happiy_songs[random.choice(list(happiy_songs.keys()))])
         if self.in_type == "0":  # 疲惫
             uri = random.choice(list(tired_songs.keys()))
+            super().report(uri)
         elif self.in_type == "1":  # 舒缓
             uri = random.choice(list(calmed_songs.keys()))
+            super().report(uri)
         elif self.in_type == "2":  # 悲伤
             uri = random.choice(list(sadness_songs.keys()))
+            super().report(uri)
         elif self.in_type == "3":  # 开心
             uri = random.choice(list(happiy_songs.keys()))
-        super().report(uri)
+            super().report(uri)
 
         # TODO: name
 

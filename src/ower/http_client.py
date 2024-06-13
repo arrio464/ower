@@ -2,8 +2,7 @@ import json
 import logging
 
 import requests
-
-from .enums import ClientEnum
+from enums import ClientEnum
 
 logging.basicConfig(level=logging.INFO)
 

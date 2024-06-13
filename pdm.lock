@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:17cc6a40826edd78c89fe16585dcb3daa544f557c76668038d879652cd4c8861"
+content_hash = "sha256:8b18f932e69fa8953544ee4f6fa303af741e7324c1a9f337c544b88c93ae1a15"
 
 [[package]]
 name = "annotated-types"
@@ -175,6 +175,18 @@ groups = ["default"]
 files = [
     {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
     {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
+]
+
+[[package]]
+name = "lgpio"
+version = "0.2.2.0"
+summary = "Linux SBC GPIO module"
+groups = ["default"]
+files = [
+    {file = "lgpio-0.2.2.0-cp312-cp312-linux_armv7l.whl", hash = "sha256:6c65ac42e878764d04a71ed12fe6d46089b36e9e8127722bf29bb2e4bc91de22"},
+    {file = "lgpio-0.2.2.0-cp312-cp312-manylinux_2_34_aarch64.whl", hash = "sha256:d907db79292c721c605af08187385ddb3b7af09907e1ffca56cf0cd6558ace0a"},
+    {file = "lgpio-0.2.2.0-cp312-cp312-manylinux_2_34_x86_64.whl", hash = "sha256:2aadff092f642fcdada8457c158f87259dfda3a89ec19bae0b99ff22b34aac4b"},
+    {file = "lgpio-0.2.2.0.tar.gz", hash = "sha256:11372e653b200f76a0b3ef8a23a0735c85ec678a9f8550b9893151ed0f863fff"},
 ]
 
 [[package]]
@@ -401,6 +413,20 @@ dependencies = [
 files = [
     {file = "requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"},
     {file = "requests-2.32.3.tar.gz", hash = "sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760"},
+]
+
+[[package]]
+name = "rpi-lgpio"
+version = "0.6"
+requires_python = ">=3.7"
+summary = "A compatibility shim between RPi.GPIO and lgpio"
+groups = ["default"]
+dependencies = [
+    "lgpio>=0.1.0.1",
+]
+files = [
+    {file = "rpi_lgpio-0.6-py3-none-any.whl", hash = "sha256:0930b6e0ffbfbeee9366fbfa5038d29a7606be96a5229d570b1f81be8f776777"},
+    {file = "rpi_lgpio-0.6.tar.gz", hash = "sha256:84579b11d543bb8abdddc1e10fcd6bdc2819e5897be72d6949a2b044d71fb73e"},
 ]
 
 [[package]]

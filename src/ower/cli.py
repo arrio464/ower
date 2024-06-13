@@ -45,8 +45,9 @@ class Cli(Recorder, Player):
         logging.info(f"Transcription result: {transcription.text}")
         return transcription.text
 
-    def talk(self):
-        text = self._stt()
+    def talk(self, text):
+        if not text:
+            text = self._stt()
         completion = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -61,7 +62,7 @@ class Cli(Recorder, Player):
             ],
         )
         logging.info(f"LLM's response: {completion.choices[0].message}")
-        self.say(completion.choices[0].message.content)
+        return completion.choices[0].message.content
 
 
 def test():
